@@ -72,7 +72,8 @@ byte pn532response_firmwarevers[] = {0x00, 0xFF, 0x06, 0xFA, 0xD5, 0x03};
 
 // Hardware SPI-specific configuration:
 #ifdef SPI_HAS_TRANSACTION
-    #define PN532_SPI_SETTING SPISettings(1000000, LSBFIRST, SPI_MODE0)
+    // Default speed was: 1000000
+    #define PN532_SPI_SETTING SPISettings(19200, LSBFIRST, SPI_MODE0)
 #else
     #define PN532_SPI_CLOCKDIV SPI_CLOCK_DIV16
 #endif
@@ -182,6 +183,11 @@ Adafruit_PN532::Adafruit_PN532(uint8_t ss):
 {
   pinMode(_ss, OUTPUT);
   digitalWrite(_ss, HIGH); 
+}
+
+void Adafruit_PN532::setIRQ(uint8_t irq)
+{
+  _irq = irq;
 }
 
 /**************************************************************************/
@@ -1506,6 +1512,7 @@ bool Adafruit_PN532::readack() {
 /**************************************************************************/
 bool Adafruit_PN532::isready() {
   if (_usingSPI) {
+#if 0
     // SPI read status and check if ready.
     #ifdef SPI_HAS_TRANSACTION
       if (_hardwareSPI) SPI.beginTransaction(PN532_SPI_SETTING);
@@ -1523,6 +1530,10 @@ bool Adafruit_PN532::isready() {
 
     // Check if status is ready.
     return x == PN532_SPI_READY;
+#else
+    uint8_t x = digitalRead(_irq);
+    return x == 0;
+#endif
   }
   else {
     // I2C check if status is ready by IRQ line being pulled low.
