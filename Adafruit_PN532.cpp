@@ -125,10 +125,10 @@ static inline uint8_t i2c_recv(void)
 */
 /**************************************************************************/
 Adafruit_PN532::Adafruit_PN532(uint8_t clk, uint8_t miso, uint8_t mosi, uint8_t ss):
-  _clk(clk),
-  _miso(miso),
-  _mosi(mosi),
   _ss(ss),
+  _clk(clk),
+  _mosi(mosi),
+  _miso(miso),
   _irq(0),
   _reset(0),
   _usingSPI(true),
@@ -150,10 +150,10 @@ Adafruit_PN532::Adafruit_PN532(uint8_t clk, uint8_t miso, uint8_t mosi, uint8_t 
 */
 /**************************************************************************/
 Adafruit_PN532::Adafruit_PN532(uint8_t irq, uint8_t reset):
-  _clk(0),
-  _miso(0),
-  _mosi(0),
   _ss(0),
+  _clk(0),
+  _mosi(0),
+  _miso(0),
   _irq(irq),
   _reset(reset),
   _usingSPI(false),
@@ -171,10 +171,10 @@ Adafruit_PN532::Adafruit_PN532(uint8_t irq, uint8_t reset):
 */
 /**************************************************************************/
 Adafruit_PN532::Adafruit_PN532(uint8_t ss):
-  _clk(0),
-  _miso(0),
-  _mosi(0),
   _ss(ss),
+  _clk(0),
+  _mosi(0),
+  _miso(0),
   _irq(0),
   _reset(0),
   _usingSPI(true),
@@ -348,8 +348,6 @@ uint32_t Adafruit_PN532::getFirmwareVersion(void) {
 /**************************************************************************/
 // default timeout of one second
 bool Adafruit_PN532::sendCommandCheckAck(uint8_t *cmd, uint8_t cmdlen, uint16_t timeout) {
-  uint16_t timer = 0;
-
   // write the command
   writecommand(cmd, cmdlen);
 
@@ -405,8 +403,6 @@ bool Adafruit_PN532::sendCommandCheckAck(uint8_t *cmd, uint8_t cmdlen, uint16_t 
 */
 /**************************************************************************/
 bool Adafruit_PN532::writeGPIO(uint8_t pinstate) {
-  uint8_t errorbit;
-
   // Make sure pinstate does not try to toggle P32 or P34
   pinstate |= (1 << PN532_GPIO_P32) | (1 << PN532_GPIO_P34);
 
@@ -842,7 +838,6 @@ bool Adafruit_PN532::mifareclassic_IsTrailerBlock (uint32_t uiBlock)
 /**************************************************************************/
 uint8_t Adafruit_PN532::mifareclassic_AuthenticateBlock (uint8_t * uid, uint8_t uidLen, uint32_t blockNumber, uint8_t keyNumber, uint8_t * keyData)
 {
-  uint8_t len;
   uint8_t i;
 
   // Hang on to the key and uid data
@@ -1055,7 +1050,7 @@ uint8_t Adafruit_PN532::mifareclassic_WriteNDEFURI (uint8_t sectorNumber, uint8_
   // in NDEF records
 
   // Setup the sector buffer (w/pre-formatted TLV wrapper and NDEF message)
-  uint8_t sectorbuffer1[16] = {0x00, 0x00, 0x03, len+5, 0xD1, 0x01, len+1, 0x55, uriIdentifier, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  uint8_t sectorbuffer1[16] = {0x00, 0x00, 0x03, (uint8_t) (len+5), 0xD1, 0x01, (uint8_t) (len+1), 0x55, uriIdentifier, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   uint8_t sectorbuffer2[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   uint8_t sectorbuffer3[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   uint8_t sectorbuffer4[16] = {0xD3, 0xF7, 0xD3, 0xF7, 0xD3, 0xF7, 0x7F, 0x07, 0x88, 0x40, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -1423,10 +1418,10 @@ uint8_t Adafruit_PN532::ntag2xx_WriteNDEFURI (uint8_t uriIdentifier, char * url,
     0x44,         /* Size in bytes of a page and the number of bytes each lock bit can lock (4 bit + 4 bits) */
     /* NDEF Message TLV - URI Record */
     0x03,         /* Tag Field (0x03 = NDEF Message) */
-    len+5,        /* Payload Length (not including 0xFE trailer) */
+    (uint8_t) (len+5),        /* Payload Length (not including 0xFE trailer) */
     0xD1,         /* NDEF Record Header (TNF=0x1:Well known record + SR + ME + MB) */
     0x01,         /* Type Length for the record type indicator */
-    len+1,        /* Payload len */
+    (uint8_t) (len+1),        /* Payload len */
     0x55,         /* Record Type Indicator (0x55 or 'U' = URI Record) */
     uriIdentifier /* URI Prefix (ex. 0x01 = "http://www.") */
   };
@@ -1599,8 +1594,6 @@ void Adafruit_PN532::readdata(uint8_t* buff, uint8_t n) {
   }
   else {
     // I2C write.
-    uint16_t timer = 0;
-
     delay(2);
 
     #ifdef PN532DEBUG
